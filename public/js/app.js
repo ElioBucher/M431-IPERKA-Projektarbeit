@@ -1,33 +1,18 @@
 /* ============================================================
    app.js – Kern-Logik: Auth-Check, Module, Tabs, Modals
    Datei: public/js/app.js
-   ============================================================
-
-   SCHNITTSTELLE ZUM BACKEND (Elio):
-   Nach dem Login setzt das Backend folgende sessionStorage-Werte:
-     sessionStorage.setItem('classId',   '42');        // integer
-     sessionStorage.setItem('className', 'IB2024a');   // string
-     sessionStorage.setItem('token',     'eyJ...');    // JWT (optional, falls Elio JWT nutzt)
-
-   Alle API-Aufrufe schicken automatisch den Token im Header mit.
    ============================================================ */
 
-/* ── CONFIG ──────────────────────────────────────────────── */
-const API_BASE = '/api';   // Basis-URL für alle Backend-Aufrufe
+const API_BASE = '/api/v1';
 
-/* ── STATE ───────────────────────────────────────────────── */
 let currentClassId  = null;
 let currentModuleId = null;
 let modules         = [];
 
 /* ── AUTH CHECK ──────────────────────────────────────────── */
-// Wenn classId fehlt → zurück zur Login-Seite
 function requireAuth() {
   const classId = sessionStorage.getItem('classId');
-  if (!classId) {
-    window.location.href = 'index.html';
-    return false;
-  }
+  if (!classId) { window.location.href = 'index.html'; return false; }
   currentClassId = parseInt(classId, 10);
   document.getElementById('class-badge').textContent = sessionStorage.getItem('className') || '–';
   return true;
@@ -42,7 +27,6 @@ async function apiFetch(path, options = {}) {
   const res = await fetch(API_BASE + path, { ...options, headers });
 
   if (res.status === 401) {
-    // Token abgelaufen oder ungültig
     sessionStorage.clear();
     window.location.href = 'index.html';
     return null;
@@ -55,7 +39,7 @@ async function apiFetch(path, options = {}) {
 /* ── DATUM FORMATIERUNG ──────────────────────────────────── */
 function formatDate(iso) {
   if (!iso) return '–';
-  const d = new Date(iso + 'T00:00:00');
+  const d = new Date(iso + (iso.includes('T') ? '' : 'T00:00:00'));
   return d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
@@ -74,7 +58,7 @@ function dueBadge(iso) {
   return `<span class="badge badge-green">In ${days}d</span>`;
 }
 
-/* ── MODULE LADEN & RENDERN ──────────────────────────────── */
+/* ── MODULE ──────────────────────────────────────────────── */
 async function loadModules() {
   try {
     modules = await apiFetch(`/classes/${currentClassId}/modules`) || [];
@@ -87,12 +71,10 @@ async function loadModules() {
 function renderModuleList() {
   const ul = document.getElementById('module-list');
   ul.innerHTML = '';
-
   if (modules.length === 0) {
     ul.innerHTML = '<li style="padding:8px 6px;color:var(--text-dim);font-size:.82rem;">Noch keine Module</li>';
     return;
   }
-
   modules.forEach(m => {
     const li = document.createElement('li');
     if (m.id === currentModuleId) li.classList.add('active');
@@ -105,18 +87,16 @@ function renderModuleList() {
 async function selectModule(m) {
   currentModuleId = m.id;
   renderModuleList();
-  document.getElementById('empty-state').style.display  = 'none';
-  document.getElementById('module-view').style.display  = 'block';
-  document.getElementById('module-title').textContent   = m.name;
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('module-view').style.display = 'block';
+  document.getElementById('module-title').textContent  = m.name;
   document.getElementById('module-subtitle').textContent =
-    `Erstellt am ${formatDate(m.created_at?.split('T')[0] ?? m.created_at)}`;
-
-  // Aktiven Tab neu laden
+    `Erstellt am ${formatDate(m.createdAt ?? m.created_at ?? '')}`;
   const activeTab = document.querySelector('.tab.active');
   if (activeTab) triggerTabLoad(activeTab.dataset.tab);
 }
 
-/* ── TABS ─────────────────────────────────────────────────── */
+/* ── TABS ────────────────────────────────────────────────── */
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -130,14 +110,14 @@ document.querySelectorAll('.tab').forEach(btn => {
 function triggerTabLoad(tab) {
   if (!currentModuleId) return;
   switch (tab) {
-    case 'homework':  loadHomework();   break;
-    case 'exams':     loadExams();      break;
-    case 'info':      loadInfos();      break;
-    case 'questions': loadQuestions();  break;
+    case 'homework':  loadHomework();  break;
+    case 'exams':     loadExams();     break;
+    case 'info':      loadInfos();     break;
+    case 'questions': loadQuestions(); break;
   }
 }
 
-/* ── MODUL HINZUFÜGEN ─────────────────────────────────────── */
+/* ── MODUL HINZUFÜGEN ────────────────────────────────────── */
 document.getElementById('btn-add-module').addEventListener('click', () => {
   openModal('modal-add-module');
   document.getElementById('input-module-name').value = '';
@@ -156,33 +136,28 @@ document.getElementById('confirm-add-module').addEventListener('click', async ()
     modules.push(m);
     renderModuleList();
     selectModule(m);
-  } catch (e) {
-    alert('Fehler: ' + e.message);
-  }
+  } catch (e) { alert('Fehler: ' + e.message); }
 });
 
-/* Enter-Taste im Modul-Input */
 document.getElementById('input-module-name').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('confirm-add-module').click();
 });
 
-/* ── MODUL LÖSCHEN ─────────────────────────────────────────── */
+/* ── MODUL LÖSCHEN ───────────────────────────────────────── */
 document.getElementById('btn-delete-module').addEventListener('click', () => {
   openModal('modal-confirm-delete');
 });
 
 document.getElementById('confirm-delete-module').addEventListener('click', async () => {
   try {
-    await apiFetch(`/modules/${currentModuleId}`, { method: 'DELETE' });
+    await apiFetch(`/classes/${currentClassId}/modules/${currentModuleId}`, { method: 'DELETE' });
     closeModal('modal-confirm-delete');
     modules = modules.filter(m => m.id !== currentModuleId);
     currentModuleId = null;
     document.getElementById('module-view').style.display = 'none';
-    document.getElementById('empty-state').style.display  = 'flex';
+    document.getElementById('empty-state').style.display = 'flex';
     renderModuleList();
-  } catch (e) {
-    alert('Fehler: ' + e.message);
-  }
+  } catch (e) { alert('Fehler: ' + e.message); }
 });
 
 /* ── LOGOUT ──────────────────────────────────────────────── */
@@ -211,46 +186,26 @@ document.getElementById('logo-click').addEventListener('click', () => {
   }
 });
 
-/* ── MODAL SYSTEM ─────────────────────────────────────────── */
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+/* ── MODALS ──────────────────────────────────────────────── */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-// Schliessen via data-close Attribut
 document.querySelectorAll('[data-close]').forEach(btn => {
   btn.addEventListener('click', () => closeModal(btn.dataset.close));
 });
-
-// Schliessen via Klick auf Overlay
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) closeModal(overlay.id);
-  });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(overlay.id); });
 });
 
 /* ── HTML ESCAPE ─────────────────────────────────────────── */
 function escapeHtml(str) {
   if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 
-/* ── INIT ─────────────────────────────────────────────────── */
+/* ── INIT ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   if (!requireAuth()) return;
   loadModules();
 });
-
-/* ── EXPORTS für andere JS-Dateien ──────────────────────────
-   (kein Modul-System, daher einfach globale Variablen/Funktionen)
-   homework.js, exams.js, info.js, questions.js greifen auf
-   currentModuleId, apiFetch, formatDate, dueBadge, escapeHtml, 
-   openModal, closeModal zu.
-   ============================================================ */

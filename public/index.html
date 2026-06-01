@@ -38,36 +38,15 @@
     }
     button:hover { opacity: .88; }
     .error { color: #e05260; font-size: .85rem; margin-top: 10px; min-height: 20px; }
-
-    /* ======================================================
-       ELIO – Anleitung für das Backend-Login
-       ======================================================
-       1. Formular absenden → POST /api/auth/login
-          Body: { "className": "IB2024a", "password": "geheim" }
-
-       2. Bei Erfolg gibt das Backend zurück:
-          { "classId": 42, "className": "IB2024a", "token": "eyJ..." }
-
-       3. Dann diese drei Werte in sessionStorage setzen:
-          sessionStorage.setItem('classId',   data.classId.toString());
-          sessionStorage.setItem('className', data.className);
-          sessionStorage.setItem('token',     data.token);   // falls JWT
-
-       4. Danach weiterleiten:
-          window.location.href = 'dashboard.html';
-
-       Das Frontend liest diese Werte beim Start von dashboard.html.
-       Fehlt classId → automatische Weiterleitung zurück zu index.html.
-       ====================================================== */
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">📚 KlassenHub</div>
+    <div class="logo">KlassenHub</div>
     <p class="sub">Mit deinem Klassen-Login anmelden</p>
 
     <label>Klasse
-      <input type="text" id="input-class" placeholder="z.B. IB2024a" autocomplete="username" />
+      <input type="text" id="input-class" placeholder="z.B. AP26a" autocomplete="username" />
     </label>
     <label>Passwort
       <input type="password" id="input-password" placeholder="Klassen-Passwort" autocomplete="current-password" />
@@ -77,28 +56,28 @@
   </div>
 
   <script>
-    /* ── LOGIN-LOGIK (Elio ergänzt hier den echten API-Aufruf) ── */
     document.getElementById('btn-login').addEventListener('click', handleLogin);
     document.getElementById('input-password').addEventListener('keydown', e => {
       if (e.key === 'Enter') handleLogin();
     });
 
     async function handleLogin() {
-      const className = document.getElementById('input-class').value.trim();
-      const password  = document.getElementById('input-password').value;
-      const errorEl   = document.getElementById('error-msg');
+      const username = document.getElementById('input-class').value.trim();
+      const password = document.getElementById('input-password').value;
+      const errorEl  = document.getElementById('error-msg');
       errorEl.textContent = '';
 
-      if (!className || !password) {
+      if (!username || !password) {
         errorEl.textContent = 'Bitte Klasse und Passwort eingeben.';
         return;
       }
 
       try {
-        const res = await fetch('/api/auth/login', {
+        // Elio's API: POST /api/v1/auth/login mit { username, password }
+        const res = await fetch('/api/v1/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ className, password })
+          body: JSON.stringify({ username, password })
         });
 
         if (!res.ok) {
@@ -109,10 +88,11 @@
 
         const data = await res.json();
 
-        // ── Diese drei Werte werden vom dashboard.html erwartet ──
+        // Elio's API gibt { token, classId, className } zurück
+        // Falls classId fehlt: Elio muss das noch ergänzen!
+        sessionStorage.setItem('token',     data.token);
         sessionStorage.setItem('classId',   String(data.classId));
-        sessionStorage.setItem('className', data.className);
-        if (data.token) sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('className', data.className ?? username);
 
         window.location.href = 'dashboard.html';
 
