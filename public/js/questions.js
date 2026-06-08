@@ -57,11 +57,11 @@ document.getElementById('btn-add-question').addEventListener('click', () => {
   setTimeout(() => document.getElementById('question-text').focus(), 100);
 });
 
-document.getElementById('confirm-add-question').addEventListener('click', async () => {
+document.getElementById('confirm-add-question').addEventListener('click', async function() {
   const questionText = document.getElementById('question-text').value.trim();
-  if (!questionText) return;
+  if (!questionText || this.disabled) return;
+  this.disabled = true;
   try {
-    // Elio's API erwartet: questionText
     await apiFetch(`/modules/${currentModuleId}/questions`, {
       method: 'POST',
       body: JSON.stringify({ questionText })
@@ -69,6 +69,7 @@ document.getElementById('confirm-add-question').addEventListener('click', async 
     closeModal('modal-add-question');
     loadQuestions();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 function openAnswerModal(questionId, questionText) {
@@ -79,12 +80,11 @@ function openAnswerModal(questionId, questionText) {
   setTimeout(() => document.getElementById('answer-text').focus(), 100);
 }
 
-document.getElementById('confirm-add-answer').addEventListener('click', async () => {
+document.getElementById('confirm-add-answer').addEventListener('click', async function() {
   const answerText = document.getElementById('answer-text').value.trim();
-  if (!answerText || !answerTargetQuestionId) return;
+  if (!answerText || !answerTargetQuestionId || this.disabled) return;
+  this.disabled = true;
   try {
-    // Elio's URL: /modules/:moduleId/questions/:id/answers
-    // Elio's API erwartet: answerText
     await apiFetch(`/modules/${currentModuleId}/questions/${answerTargetQuestionId}/answers`, {
       method: 'POST',
       body: JSON.stringify({ answerText })
@@ -93,6 +93,7 @@ document.getElementById('confirm-add-answer').addEventListener('click', async ()
     answerTargetQuestionId = null;
     loadQuestions();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 async function deleteQuestion(id) {

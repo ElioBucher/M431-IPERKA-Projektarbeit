@@ -45,13 +45,14 @@ document.getElementById('btn-add-hw').addEventListener('click', () => {
   setTimeout(() => document.getElementById('hw-title').focus(), 100);
 });
 
-document.getElementById('confirm-add-hw').addEventListener('click', async () => {
+document.getElementById('confirm-add-hw').addEventListener('click', async function() {
   const title   = document.getElementById('hw-title').value.trim();
   const desc    = document.getElementById('hw-desc').value.trim();
   const dueDate = document.getElementById('hw-due').value;
   if (!title || !dueDate) { alert('Bitte Titel und Fälligkeitsdatum angeben.'); return; }
+  if (this.disabled) return;
+  this.disabled = true;
   try {
-    // Elio's API erwartet: title, description, dueDate (camelCase)
     await apiFetch(`/modules/${currentModuleId}/homework`, {
       method: 'POST',
       body: JSON.stringify({ title, description: desc, dueDate })
@@ -59,6 +60,7 @@ document.getElementById('confirm-add-hw').addEventListener('click', async () => 
     closeModal('modal-add-hw');
     loadHomework();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 async function deleteHomework(id) {
