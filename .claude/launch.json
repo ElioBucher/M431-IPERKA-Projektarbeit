@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "klasssenhub",
+      "runtimeExecutable": "C:\\Users\\eliob\\Dokumente\\Berufsschule\\2. Semester\\M431\\70-Projekt\\class-hub\\mvnw.cmd",
+      "runtimeArgs": ["quarkus:dev", "-Dquarkus.http.port=8080"],
+      "port": 8080
+    }
+  ]
+}

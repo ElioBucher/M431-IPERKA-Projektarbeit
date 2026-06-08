@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KlassenHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo" id="logo-click">
+        <span class="logo-icon"></span>
+        <span class="logo-text">KlassenHub</span>
+      </div>
+      <span class="class-badge" id="class-badge">–</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <p class="nav-label">Module</p>
+      <ul id="module-list" class="module-list">
+        <!-- dynamisch befüllt -->
+      </ul>
+      <button class="btn-add-module" id="btn-add-module">+ Modul hinzufügen</button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="btn-logout">Abmelden</button>
+    </div>
+  </aside>
+
+  <!-- ── MAIN CONTENT ─────────────────────────────────────── -->
+  <main class="main" id="main">
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon"></div>
+      <h2>Wähle ein Modul</h2>
+      <p>Wähle links ein Modul aus oder füge ein neues hinzu.</p>
+    </div>
+
+    <!-- MODULE VIEW (hidden until module selected) -->
+    <div class="module-view" id="module-view" style="display:none">
+
+      <header class="module-header">
+        <div>
+          <h1 id="module-title">–</h1>
+          <span id="module-subtitle" class="module-subtitle"></span>
+        </div>
+        <button class="btn-icon danger" id="btn-delete-module" title="Modul löschen">🗑</button>
+      </header>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="homework">Hausaufgaben</button>
+        <button class="tab" data-tab="exams">Prüfungen</button>
+        <button class="tab" data-tab="info">Informationen</button>
+        <button class="tab" data-tab="questions">Fragen</button>
+      </div>
+
+      <!-- ── HAUSAUFGABEN ── -->
+      <section class="tab-content active" id="tab-homework">
+        <div class="section-bar">
+          <h2>Hausaufgaben</h2>
+          <button class="btn-primary" id="btn-add-hw">+ Hinzufügen</button>
+        </div>
+        <div id="hw-list" class="card-list"></div>
+      </section>
+
+      <!-- ── PRÜFUNGEN ── -->
+      <section class="tab-content" id="tab-exams">
+        <div class="section-bar">
+          <h2>Prüfungen</h2>
+          <button class="btn-primary" id="btn-add-exam">+ Hinzufügen</button>
+        </div>
+        <div id="exam-list" class="card-list"></div>
+      </section>
+
+      <!-- ── INFORMATIONEN ── -->
+      <section class="tab-content" id="tab-info">
+        <div class="section-bar">
+          <h2>Informationen</h2>
+          <button class="btn-primary" id="btn-add-info">+ Hinzufügen</button>
+        </div>
+        <div id="info-list" class="card-list"></div>
+      </section>
+
+      <!-- ── FRAGEN ── -->
+      <section class="tab-content" id="tab-questions">
+        <div class="section-bar">
+          <h2>Fragen</h2>
+          <button class="btn-primary" id="btn-add-question">+ Frage stellen</button>
+        </div>
+        <div id="question-list" class="card-list"></div>
+      </section>
+
+    </div><!-- /module-view -->
+  </main>
+
+  <!-- ── MODALS ────────────────────────────────────────────── -->
+
+  <!-- Modul hinzufügen -->
+  <div class="modal-overlay" id="modal-add-module">
+    <div class="modal">
+      <h3>Neues Modul</h3>
+      <label>Modulname<input type="text" id="input-module-name" placeholder="z.B. Mathematik" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-add-module">Abbrechen</button>
+        <button class="btn-primary" id="confirm-add-module">Erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hausaufgabe hinzufügen -->
+  <div class="modal-overlay" id="modal-add-hw">
+    <div class="modal">
+      <h3>Hausaufgabe hinzufügen</h3>
+      <label>Titel<input type="text" id="hw-title" placeholder="Was ist zu tun?" /></label>
+      <label>Beschreibung<textarea id="hw-desc" placeholder="Optional: Details..."></textarea></label>
+      <label>Fällig am<input type="date" id="hw-due" /></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-add-hw">Abbrechen</button>
+        <button class="btn-primary" id="confirm-add-hw">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prüfung hinzufügen -->
+  <div class="modal-overlay" id="modal-add-exam">
+    <div class="modal">
+      <h3>Prüfung hinzufügen</h3>
+      <label>Titel<input type="text" id="exam-title" placeholder="z.B. Algebra Test" /></label>
+      <label>Prüfungsdatum<input type="date" id="exam-date" /></label>
+      <label>Lernziele / Themen<textarea id="exam-topics" placeholder="Was muss gelernt werden?"></textarea></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-add-exam">Abbrechen</button>
+        <button class="btn-primary" id="confirm-add-exam">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Information hinzufügen -->
+  <div class="modal-overlay" id="modal-add-info">
+    <div class="modal">
+      <h3>Information hinzufügen</h3>
+      <label>Titel<input type="text" id="info-title" placeholder="Titel der Information" /></label>
+      <label>Inhalt<textarea id="info-content" placeholder="Was soll festgehalten werden?"></textarea></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-add-info">Abbrechen</button>
+        <button class="btn-primary" id="confirm-add-info">Speichern</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frage hinzufügen -->
+  <div class="modal-overlay" id="modal-add-question">
+    <div class="modal">
+      <h3>Frage stellen</h3>
+      <label>Deine Frage<textarea id="question-text" placeholder="Was möchtest du wissen?"></textarea></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-add-question">Abbrechen</button>
+        <button class="btn-primary" id="confirm-add-question">Stellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Antwort hinzufügen -->
+  <div class="modal-overlay" id="modal-add-answer">
+    <div class="modal">
+      <h3>Antwort hinzufügen</h3>
+      <p id="answer-question-preview" class="preview-text"></p>
+      <label>Antwort<textarea id="answer-text" placeholder="Deine Antwort..."></textarea></label>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-add-answer">Abbrechen</button>
+        <button class="btn-primary" id="confirm-add-answer">Antworten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modul löschen bestätigen -->
+  <div class="modal-overlay" id="modal-confirm-delete">
+    <div class="modal modal-sm">
+      <h3>Modul löschen?</h3>
+      <p>Alle Inhalte dieses Moduls werden unwiderruflich gelöscht.</p>
+      <div class="modal-actions">
+        <button class="btn-ghost" data-close="modal-confirm-delete">Abbrechen</button>
+        <button class="btn-danger" id="confirm-delete-module">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/homework.js"></script>
+  <script src="js/exams.js"></script>
+  <script src="js/info.js"></script>
+  <script src="js/questions.js"></script>
+</body>
+</html>
