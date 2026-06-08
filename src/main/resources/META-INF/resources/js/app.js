@@ -106,23 +106,50 @@ function triggerTabLoad(tab) {
   }
 }
 
-/* ── MODUL HINZUFÜGEN ────────────────────────────────────── */
+/* ── MODUL HINZUFÜGEN / UMBENENNEN ───────────────────────── */
+let _editingModuleId = null;
+
 document.getElementById('btn-add-module').addEventListener('click', () => {
-  openModal('modal-add-module');
+  _editingModuleId = null;
+  document.getElementById('modal-module-title').textContent = 'Neues Modul';
+  document.getElementById('confirm-add-module').textContent = 'Erstellen';
   document.getElementById('input-module-name').value = '';
+  openModal('modal-add-module');
   setTimeout(() => document.getElementById('input-module-name').focus(), 100);
 });
+
+function openRenameModuleModal() {
+  const mod = modules.find(m => m.id === currentModuleId);
+  if (!mod) return;
+  _editingModuleId = currentModuleId;
+  document.getElementById('modal-module-title').textContent = 'Modul umbenennen';
+  document.getElementById('confirm-add-module').textContent = 'Speichern';
+  document.getElementById('input-module-name').value = mod.name;
+  openModal('modal-add-module');
+  setTimeout(() => document.getElementById('input-module-name').focus(), 100);
+}
+
+document.getElementById('btn-rename-module').addEventListener('click', openRenameModuleModal);
 
 document.getElementById('confirm-add-module').addEventListener('click', async function() {
   const name = document.getElementById('input-module-name').value.trim();
   if (!name || this.disabled) return;
   this.disabled = true;
   try {
-    const m = await apiFetch(`/classes/${currentClassId}/modules`, { method: 'POST', body: JSON.stringify({ name }) });
-    closeModal('modal-add-module');
-    modules.push(m);
-    renderModuleList();
-    selectModule(m);
+    if (_editingModuleId) {
+      const m = await apiFetch(`/modules/${_editingModuleId}`, { method: 'PUT', body: JSON.stringify({ name }) });
+      closeModal('modal-add-module');
+      const idx = modules.findIndex(x => x.id === _editingModuleId);
+      if (idx !== -1) modules[idx] = m;
+      renderModuleList();
+      document.getElementById('module-title').textContent = m.name;
+    } else {
+      const m = await apiFetch(`/classes/${currentClassId}/modules`, { method: 'POST', body: JSON.stringify({ name }) });
+      closeModal('modal-add-module');
+      modules.push(m);
+      renderModuleList();
+      selectModule(m);
+    }
   } catch (e) { alert('Fehler: ' + e.message); }
   finally { this.disabled = false; }
 });

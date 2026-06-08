@@ -81,6 +81,38 @@ public class HomeworkResource {
     }
 
     /**
+     * PUT /api/modules/:moduleId/homework/:id
+     * Body: { title, description?, dueDate }
+     */
+    @PUT
+    @Path("/modules/{moduleId}/homework/{id}")
+    @Transactional
+    public Response update(@PathParam("moduleId") Long moduleId, @PathParam("id") Long id, HomeworkRequest req) {
+        Homework h = Homework.findById(id);
+        if (h == null || !h.moduleId.equals(moduleId)) {
+            return Response.status(404).entity(Map.of("error", "Nicht gefunden")).build();
+        }
+        Module m = Module.findById(h.moduleId);
+        if (m == null || !auth.ownsClass(m.classId)) {
+            return Response.status(403).entity(Map.of("error", "Kein Zugriff")).build();
+        }
+        if (req.title() == null || req.title().isBlank() || req.dueDate() == null) {
+            return Response.status(400).entity(Map.of("error", "Titel und Datum erforderlich")).build();
+        }
+        h.title       = req.title();
+        h.description = req.description();
+        h.dueDate     = req.dueDate();
+        return Response.ok(Map.of(
+                "id",          h.id,
+                "module_id",   h.moduleId,
+                "title",       h.title,
+                "description", h.description != null ? h.description : "",
+                "dueDate",     h.dueDate,
+                "createdAt",   h.createdAt.toString()
+        )).build();
+    }
+
+    /**
      * DELETE /api/modules/:moduleId/homework/:id
      */
     @DELETE

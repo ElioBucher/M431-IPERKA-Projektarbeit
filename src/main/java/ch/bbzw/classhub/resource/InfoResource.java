@@ -78,6 +78,36 @@ public class InfoResource {
     }
 
     /**
+     * PUT /api/modules/:moduleId/infos/:id
+     * Body: { title, content? }
+     */
+    @PUT
+    @Path("/modules/{moduleId}/infos/{id}")
+    @Transactional
+    public Response update(@PathParam("moduleId") Long moduleId, @PathParam("id") Long id, InfoRequest req) {
+        Info i = Info.findById(id);
+        if (i == null || !i.moduleId.equals(moduleId)) {
+            return Response.status(404).entity(Map.of("error", "Nicht gefunden")).build();
+        }
+        Module m = Module.findById(i.moduleId);
+        if (m == null || !auth.ownsClass(m.classId)) {
+            return Response.status(403).entity(Map.of("error", "Kein Zugriff")).build();
+        }
+        if (req.title() == null || req.title().isBlank()) {
+            return Response.status(400).entity(Map.of("error", "Titel erforderlich")).build();
+        }
+        i.title   = req.title();
+        i.content = req.content();
+        return Response.ok(Map.of(
+                "id",         i.id,
+                "module_id",  i.moduleId,
+                "title",      i.title,
+                "content",    i.content != null ? i.content : "",
+                "created_at", i.createdAt.toString()
+        )).build();
+    }
+
+    /**
      * DELETE /api/modules/:moduleId/infos/:id
      */
     @DELETE

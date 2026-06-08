@@ -1,0 +1,13 @@
+services:
+  class-hub:
+    image: ghcr.io/eliobucber/class-hub:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - db-data:/deployments/db
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: "jdbc:sqlite:/deployments/db/class.db?journal_mode=DELETE&busy_timeout=5000"
+    restart: unless-stopped
+
+volumes:
+  db-data:
