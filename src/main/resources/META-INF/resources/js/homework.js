@@ -32,13 +32,31 @@ function renderHomework(items) {
         </div>
         <div style="display:flex;gap:12px;align-items:center;flex-shrink:0">
           ${hw.description ? '<span class="card-chevron">▾</span>' : ''}
-          <button class="btn-edit" onclick="event.stopPropagation();openEditHw(${hw.id}, \`${escapeHtml(hw.title).replace(/`/g,"'")}\`, \`${escapeHtml(hw.description || '').replace(/`/g,"'")}\`, '${hw.dueDate}')">Bearbeiten</button>
-          <button class="btn-delete" onclick="event.stopPropagation();deleteHomework(${hw.id})">Löschen</button>
+          <button class="btn-edit"
+            data-hw-id="${hw.id}"
+            data-title="${escapeHtml(hw.title)}"
+            data-desc="${escapeHtml(hw.description || '')}"
+            data-due="${hw.dueDate}">Bearbeiten</button>
+          <button class="btn-delete" data-hw-id="${hw.id}">Löschen</button>
         </div>
       </div>
       ${hw.description ? `<div class="card-expandable" style="display:none"><div class="card-body">${escapeHtml(hw.description)}</div></div>` : ''}
     </div>
   `).join('');
+
+  list.querySelectorAll('.btn-edit[data-hw-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditHw(+btn.dataset.hwId, btn.dataset.title, btn.dataset.desc, btn.dataset.due);
+    });
+  });
+
+  list.querySelectorAll('.btn-delete[data-hw-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteHomework(+btn.dataset.hwId);
+    });
+  });
 
   list.querySelectorAll('.card-toggle').forEach(header => {
     header.addEventListener('click', () => {
@@ -94,6 +112,7 @@ document.getElementById('confirm-add-hw').addEventListener('click', async functi
         body: JSON.stringify({ title, description: desc, dueDate })
       });
     }
+    _editingHwId = null;
     closeModal('modal-add-hw');
     loadHomework();
   } catch (e) { alert('Fehler: ' + e.message); }

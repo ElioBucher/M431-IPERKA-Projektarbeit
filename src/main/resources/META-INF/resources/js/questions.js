@@ -34,13 +34,16 @@ function renderQuestions(items) {
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
           <span class="card-chevron">▾</span>
-          <button class="btn-edit" onclick="event.stopPropagation();openEditQuestion(${q.id}, \`${escapeHtml(q.questionText).replace(/`/g,"'")}\`, \`${escapeHtml(q.authorName || '').replace(/`/g,"'")}\`)">Bearbeiten</button>
-          <button class="btn-delete" onclick="event.stopPropagation();deleteQuestion(${q.id})">Löschen</button>
+          <button class="btn-edit"
+            data-q-id="${q.id}"
+            data-text="${escapeHtml(q.questionText)}"
+            data-author="${escapeHtml(q.authorName || '')}">Bearbeiten</button>
+          <button class="btn-delete" data-q-id="${q.id}">Löschen</button>
         </div>
       </div>
       <div class="card-expandable" style="display:none">
         <div class="answers-section">
-          ${q.answers && q.answers.length > 0 ? q.answers.map(a => `
+          ${(q.answers || []).map(a => `
             <div class="answer-item">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
                 <div>
@@ -48,18 +51,65 @@ function renderQuestions(items) {
                   <div class="answer-meta">${escapeHtml(a.authorName)} · ${formatDate(a.createdAt)}</div>
                 </div>
                 <div style="display:flex;gap:6px;flex-shrink:0">
-                  <button class="btn-edit btn-sm" onclick="openEditAnswer(${a.id}, \`${escapeHtml(a.answerText).replace(/`/g,"'")}\`, \`${escapeHtml(a.authorName || '').replace(/`/g,"'")}\`)">Bearbeiten</button>
-                  <button class="btn-delete btn-sm" onclick="deleteAnswer(${q.id}, ${a.id})">Löschen</button>
+                  <button class="btn-edit btn-sm"
+                    data-a-id="${a.id}"
+                    data-text="${escapeHtml(a.answerText)}"
+                    data-author="${escapeHtml(a.authorName || '')}">Bearbeiten</button>
+                  <button class="btn-delete btn-sm"
+                    data-a-id="${a.id}"
+                    data-q-id="${q.id}">Löschen</button>
                 </div>
               </div>
             </div>
-          `).join('') : '<div style="padding:8px 0;font-size:.85rem;color:var(--text-3)">Noch keine Antworten.</div>'}
-          <button class="btn-link" style="margin-top:8px" onclick="openAnswerModal(${q.id}, \`${escapeHtml(q.questionText).replace(/`/g,"'")}\`)">+ Antworten</button>
+          `).join('')}
+          ${(q.answers || []).length === 0 ? '<div style="padding:8px 0;font-size:.85rem;color:var(--text-3)">Noch keine Antworten.</div>' : ''}
+          <button class="btn-link btn-add-answer" style="margin-top:8px"
+            data-q-id="${q.id}"
+            data-q-text="${escapeHtml(q.questionText)}">+ Antworten</button>
         </div>
       </div>
     </div>
   `).join('');
 
+  /* ── Frage Bearbeiten / Löschen ── */
+  list.querySelectorAll('.btn-edit[data-q-id]:not([data-a-id])').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditQuestion(+btn.dataset.qId, btn.dataset.text, btn.dataset.author);
+    });
+  });
+
+  list.querySelectorAll('.btn-delete[data-q-id]:not([data-a-id])').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteQuestion(+btn.dataset.qId);
+    });
+  });
+
+  /* ── Antwort Bearbeiten / Löschen ── */
+  list.querySelectorAll('.btn-edit[data-a-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditAnswer(+btn.dataset.aId, btn.dataset.text, btn.dataset.author);
+    });
+  });
+
+  list.querySelectorAll('.btn-delete[data-a-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteAnswer(+btn.dataset.aId);
+    });
+  });
+
+  /* ── Antwort hinzufügen ── */
+  list.querySelectorAll('.btn-add-answer').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openAnswerModal(+btn.dataset.qId, btn.dataset.qText);
+    });
+  });
+
+  /* ── Karte aufklappen ── */
   list.querySelectorAll('.card-toggle').forEach(header => {
     header.addEventListener('click', () => {
       const card = header.closest('.card-collapsible');
@@ -67,7 +117,7 @@ function renderQuestions(items) {
       const chevron = card.querySelector('.card-chevron');
       const open = body.style.display !== 'none';
       body.style.display = open ? 'none' : 'block';
-      chevron.style.transform = open ? '' : 'rotate(180deg)';
+      if (chevron) chevron.style.transform = open ? '' : 'rotate(180deg)';
     });
   });
 }
@@ -112,6 +162,7 @@ document.getElementById('confirm-add-question').addEventListener('click', async 
         body: JSON.stringify({ questionText, authorName })
       });
     }
+    _editingQuestionId = null;
     closeModal('modal-add-question');
     loadQuestions();
   } catch (e) { alert('Fehler: ' + e.message); }
@@ -120,10 +171,10 @@ document.getElementById('confirm-add-question').addEventListener('click', async 
 
 /* ── ANTWORT ERSTELLEN / BEARBEITEN ──────────────────────── */
 function openAnswerModal(questionId, questionText) {
-  _editingAnswerId = null;
+  _editingAnswerId       = null;
   answerTargetQuestionId = questionId;
-  document.getElementById('modal-answer-title').textContent = 'Antwort hinzufügen';
-  document.getElementById('confirm-add-answer').textContent = 'Antworten';
+  document.getElementById('modal-answer-title').textContent     = 'Antwort hinzufügen';
+  document.getElementById('confirm-add-answer').textContent     = 'Antworten';
   document.getElementById('answer-question-preview').textContent = questionText;
   document.getElementById('answer-author').value = '';
   document.getElementById('answer-text').value   = '';
@@ -133,8 +184,8 @@ function openAnswerModal(questionId, questionText) {
 
 function openEditAnswer(answerId, answerText, authorName) {
   _editingAnswerId = answerId;
-  document.getElementById('modal-answer-title').textContent = 'Antwort bearbeiten';
-  document.getElementById('confirm-add-answer').textContent = 'Speichern';
+  document.getElementById('modal-answer-title').textContent     = 'Antwort bearbeiten';
+  document.getElementById('confirm-add-answer').textContent     = 'Speichern';
   document.getElementById('answer-question-preview').textContent = '';
   document.getElementById('answer-author').value = authorName;
   document.getElementById('answer-text').value   = answerText;
@@ -146,7 +197,7 @@ document.getElementById('confirm-add-answer').addEventListener('click', async fu
   const authorName = document.getElementById('answer-author').value.trim();
   const answerText = document.getElementById('answer-text').value.trim();
   if (!authorName) { alert('Bitte deinen Namen angeben.'); return; }
-  if (!answerText) return;
+  if (!answerText) { alert('Bitte eine Antwort eingeben.'); return; }
   if (this.disabled) return;
   this.disabled = true;
   try {
@@ -156,13 +207,13 @@ document.getElementById('confirm-add-answer').addEventListener('click', async fu
         body: JSON.stringify({ answerText, authorName })
       });
     } else {
-      if (!answerTargetQuestionId) return;
       await apiFetch(`/modules/${currentModuleId}/questions/${answerTargetQuestionId}/answers`, {
         method: 'POST',
         body: JSON.stringify({ answerText, authorName })
       });
-      answerTargetQuestionId = null;
     }
+    _editingAnswerId       = null;
+    answerTargetQuestionId = null;
     closeModal('modal-add-answer');
     loadQuestions();
   } catch (e) { alert('Fehler: ' + e.message); }
@@ -181,12 +232,12 @@ function deleteQuestion(id) {
   );
 }
 
-function deleteAnswer(questionId, answerId) {
+function deleteAnswer(id) {
   confirmDelete(
     'Antwort löschen?',
     'Diese Antwort wird unwiderruflich gelöscht.',
     async () => {
-      await apiFetch(`/modules/${currentModuleId}/answers/${answerId}`, { method: 'DELETE' });
+      await apiFetch(`/modules/${currentModuleId}/answers/${id}`, { method: 'DELETE' });
       loadQuestions();
     }
   );

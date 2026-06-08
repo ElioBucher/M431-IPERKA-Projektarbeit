@@ -32,13 +32,30 @@ function renderInfos(items) {
         </div>
         <div style="display:flex;gap:12px;align-items:center;flex-shrink:0">
           ${inf.content ? '<span class="card-chevron">▾</span>' : ''}
-          <button class="btn-edit" onclick="event.stopPropagation();openEditInfo(${inf.id}, \`${escapeHtml(inf.title).replace(/`/g,"'")}\`, \`${escapeHtml(inf.content || '').replace(/`/g,"'")}\`)">Bearbeiten</button>
-          <button class="btn-delete" onclick="event.stopPropagation();deleteInfo(${inf.id})">Löschen</button>
+          <button class="btn-edit"
+            data-info-id="${inf.id}"
+            data-title="${escapeHtml(inf.title)}"
+            data-content="${escapeHtml(inf.content || '')}">Bearbeiten</button>
+          <button class="btn-delete" data-info-id="${inf.id}">Löschen</button>
         </div>
       </div>
       ${inf.content ? `<div class="card-expandable" style="display:none"><div class="card-body">${escapeHtml(inf.content)}</div></div>` : ''}
     </div>
   `).join('');
+
+  list.querySelectorAll('.btn-edit[data-info-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditInfo(+btn.dataset.infoId, btn.dataset.title, btn.dataset.content);
+    });
+  });
+
+  list.querySelectorAll('.btn-delete[data-info-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteInfo(+btn.dataset.infoId);
+    });
+  });
 
   list.querySelectorAll('.card-toggle').forEach(header => {
     header.addEventListener('click', () => {
@@ -91,6 +108,7 @@ document.getElementById('confirm-add-info').addEventListener('click', async func
         body: JSON.stringify({ title, content })
       });
     }
+    _editingInfoId = null;
     closeModal('modal-add-info');
     loadInfos();
   } catch (e) { alert('Fehler: ' + e.message); }

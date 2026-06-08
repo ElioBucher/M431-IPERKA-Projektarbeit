@@ -32,8 +32,12 @@ function renderExams(items) {
         </div>
         <div style="display:flex;gap:12px;align-items:center;flex-shrink:0">
           ${ex.learningGoals ? '<span class="card-chevron">▾</span>' : ''}
-          <button class="btn-edit" onclick="event.stopPropagation();openEditExam(${ex.id}, \`${escapeHtml(ex.topic).replace(/`/g,"'")}\`, '${ex.examDate}', \`${escapeHtml(ex.learningGoals || '').replace(/`/g,"'")}\`)">Bearbeiten</button>
-          <button class="btn-delete" onclick="event.stopPropagation();deleteExam(${ex.id})">Löschen</button>
+          <button class="btn-edit"
+            data-exam-id="${ex.id}"
+            data-topic="${escapeHtml(ex.topic)}"
+            data-date="${ex.examDate}"
+            data-goals="${escapeHtml(ex.learningGoals || '')}">Bearbeiten</button>
+          <button class="btn-delete" data-exam-id="${ex.id}">Löschen</button>
         </div>
       </div>
       ${ex.learningGoals ? `
@@ -45,6 +49,20 @@ function renderExams(items) {
         </div>` : ''}
     </div>
   `).join('');
+
+  list.querySelectorAll('.btn-edit[data-exam-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditExam(+btn.dataset.examId, btn.dataset.topic, btn.dataset.date, btn.dataset.goals);
+    });
+  });
+
+  list.querySelectorAll('.btn-delete[data-exam-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteExam(+btn.dataset.examId);
+    });
+  });
 
   list.querySelectorAll('.card-toggle').forEach(header => {
     header.addEventListener('click', () => {
@@ -100,6 +118,7 @@ document.getElementById('confirm-add-exam').addEventListener('click', async func
         body: JSON.stringify({ topic, examDate, learningGoals })
       });
     }
+    _editingExamId = null;
     closeModal('modal-add-exam');
     loadExams();
   } catch (e) { alert('Fehler: ' + e.message); }
