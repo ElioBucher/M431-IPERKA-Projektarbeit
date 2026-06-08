@@ -4,11 +4,7 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 COPY pom.xml .
 COPY src ./src
-RUN mvn package -DskipTests -B
-RUN echo "=== target/ ===" && find /build/target -maxdepth 3 | sort
-RUN test -d /build/target/quarkus-app \
-    && echo "quarkus-app OK" \
-    || (echo "ERROR: quarkus-app not found after mvn package!" && exit 1)
+RUN mvn quarkus:build -DskipTests -B
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-jammy
