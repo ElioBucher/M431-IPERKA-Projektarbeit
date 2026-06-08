@@ -2,6 +2,8 @@
    homework.js – Hausaufgaben
    ============================================================ */
 
+let _editingHwId = null;
+
 async function loadHomework() {
   const list = document.getElementById('hw-list');
   list.innerHTML = '<div class="empty-card">Lädt...</div>';
@@ -30,12 +32,31 @@ function renderHomework(items) {
         </div>
         <div style="display:flex;gap:12px;align-items:center;flex-shrink:0">
           ${hw.description ? '<span class="card-chevron">▾</span>' : ''}
-          <button class="btn-delete" onclick="event.stopPropagation();deleteHomework(${hw.id})">Löschen</button>
+          <button class="btn-edit"
+            data-hw-id="${hw.id}"
+            data-title="${escapeHtml(hw.title)}"
+            data-desc="${escapeHtml(hw.description || '')}"
+            data-due="${hw.dueDate}">Bearbeiten</button>
+          <button class="btn-delete" data-hw-id="${hw.id}">Löschen</button>
         </div>
       </div>
       ${hw.description ? `<div class="card-expandable" style="display:none"><div class="card-body">${escapeHtml(hw.description)}</div></div>` : ''}
     </div>
   `).join('');
+
+  list.querySelectorAll('.btn-edit[data-hw-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openEditHw(+btn.dataset.hwId, btn.dataset.title, btn.dataset.desc, btn.dataset.due);
+    });
+  });
+
+  list.querySelectorAll('.btn-delete[data-hw-id]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteHomework(+btn.dataset.hwId);
+    });
+  });
 
   list.querySelectorAll('.card-toggle').forEach(header => {
     header.addEventListener('click', () => {
@@ -51,12 +72,26 @@ function renderHomework(items) {
 }
 
 document.getElementById('btn-add-hw').addEventListener('click', () => {
+  _editingHwId = null;
+  document.getElementById('modal-hw-title').textContent = 'Hausaufgabe hinzufügen';
+  document.getElementById('confirm-add-hw').textContent = 'Speichern';
   document.getElementById('hw-title').value = '';
   document.getElementById('hw-desc').value  = '';
   document.getElementById('hw-due').value   = '';
   openModal('modal-add-hw');
   setTimeout(() => document.getElementById('hw-title').focus(), 100);
 });
+
+function openEditHw(id, title, desc, dueDate) {
+  _editingHwId = id;
+  document.getElementById('modal-hw-title').textContent = 'Hausaufgabe bearbeiten';
+  document.getElementById('confirm-add-hw').textContent = 'Speichern';
+  document.getElementById('hw-title').value = title;
+  document.getElementById('hw-desc').value  = desc;
+  document.getElementById('hw-due').value   = dueDate;
+  openModal('modal-add-hw');
+  setTimeout(() => document.getElementById('hw-title').focus(), 100);
+}
 
 document.getElementById('confirm-add-hw').addEventListener('click', async function() {
   const title   = document.getElementById('hw-title').value.trim();
@@ -66,10 +101,18 @@ document.getElementById('confirm-add-hw').addEventListener('click', async functi
   if (this.disabled) return;
   this.disabled = true;
   try {
-    await apiFetch(`/modules/${currentModuleId}/homework`, {
-      method: 'POST',
-      body: JSON.stringify({ title, description: desc, dueDate })
-    });
+    if (_editingHwId) {
+      await apiFetch(`/modules/${currentModuleId}/homework/${_editingHwId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ title, description: desc, dueDate })
+      });
+    } else {
+      await apiFetch(`/modules/${currentModuleId}/homework`, {
+        method: 'POST',
+        body: JSON.stringify({ title, description: desc, dueDate })
+      });
+    }
+    _editingHwId = null;
     closeModal('modal-add-hw');
     loadHomework();
   } catch (e) { alert('Fehler: ' + e.message); }
