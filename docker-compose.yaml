@@ -1,6 +1,6 @@
 services:
   class-hub:
-    image: ghcr.io/eliobucber/class-hub:latest
+    image: ghcr.io/eliobucher/class-hub:latest
     ports:
       - "8080:8080"
     volumes:
