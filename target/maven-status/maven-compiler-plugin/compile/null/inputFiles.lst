@@ -1,0 +1,16 @@
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Answer.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Class.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Exam.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Homework.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Info.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Module.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/model/Question.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/AuthResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/ExamResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/HealthResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/HomeworkResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/InfoResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/ModuleResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/QuestionResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/resource/RootResource.java
+/mnt/c/Users/eliob/Dokumente/Berufsschule/2. Semester/M431/70-Projekt/class-hub/src/main/java/ch/bbzw/classhub/security/AuthHelper.java
