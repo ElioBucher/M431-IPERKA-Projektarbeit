@@ -2,6 +2,8 @@
    exams.js – Prüfungen
    ============================================================ */
 
+let _editingExamId = null;
+
 async function loadExams() {
   const list = document.getElementById('exam-list');
   list.innerHTML = '<div class="empty-card">Lädt...</div>';
@@ -30,6 +32,7 @@ function renderExams(items) {
         </div>
         <div style="display:flex;gap:12px;align-items:center;flex-shrink:0">
           ${ex.learningGoals ? '<span class="card-chevron">▾</span>' : ''}
+          <button class="btn-edit" onclick="event.stopPropagation();openEditExam(${ex.id}, \`${escapeHtml(ex.topic).replace(/`/g,"'")}\`, '${ex.examDate}', \`${escapeHtml(ex.learningGoals || '').replace(/`/g,"'")}\`)">Bearbeiten</button>
           <button class="btn-delete" onclick="event.stopPropagation();deleteExam(${ex.id})">Löschen</button>
         </div>
       </div>
@@ -57,12 +60,26 @@ function renderExams(items) {
 }
 
 document.getElementById('btn-add-exam').addEventListener('click', () => {
+  _editingExamId = null;
+  document.getElementById('modal-exam-title').textContent = 'Prüfung hinzufügen';
+  document.getElementById('confirm-add-exam').textContent = 'Speichern';
   document.getElementById('exam-title').value  = '';
   document.getElementById('exam-date').value   = '';
   document.getElementById('exam-topics').value = '';
   openModal('modal-add-exam');
   setTimeout(() => document.getElementById('exam-title').focus(), 100);
 });
+
+function openEditExam(id, topic, examDate, learningGoals) {
+  _editingExamId = id;
+  document.getElementById('modal-exam-title').textContent = 'Prüfung bearbeiten';
+  document.getElementById('confirm-add-exam').textContent = 'Speichern';
+  document.getElementById('exam-title').value  = topic;
+  document.getElementById('exam-date').value   = examDate;
+  document.getElementById('exam-topics').value = learningGoals;
+  openModal('modal-add-exam');
+  setTimeout(() => document.getElementById('exam-title').focus(), 100);
+}
 
 document.getElementById('confirm-add-exam').addEventListener('click', async function() {
   const topic         = document.getElementById('exam-title').value.trim();
@@ -72,10 +89,17 @@ document.getElementById('confirm-add-exam').addEventListener('click', async func
   if (this.disabled) return;
   this.disabled = true;
   try {
-    await apiFetch(`/modules/${currentModuleId}/exams`, {
-      method: 'POST',
-      body: JSON.stringify({ topic, examDate, learningGoals })
-    });
+    if (_editingExamId) {
+      await apiFetch(`/modules/${currentModuleId}/exams/${_editingExamId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ topic, examDate, learningGoals })
+      });
+    } else {
+      await apiFetch(`/modules/${currentModuleId}/exams`, {
+        method: 'POST',
+        body: JSON.stringify({ topic, examDate, learningGoals })
+      });
+    }
     closeModal('modal-add-exam');
     loadExams();
   } catch (e) { alert('Fehler: ' + e.message); }

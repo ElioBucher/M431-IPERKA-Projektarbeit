@@ -45,7 +45,10 @@
           <h1 id="module-title">–</h1>
           <span id="module-subtitle" class="module-subtitle"></span>
         </div>
-        <button class="btn-module-delete" id="btn-delete-module">Modul löschen</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-edit" id="btn-rename-module">Umbenennen</button>
+          <button class="btn-module-delete" id="btn-delete-module">Modul löschen</button>
+        </div>
       </header>
 
       <div class="tabs">
@@ -92,10 +95,10 @@
 
   <!-- ── MODALS ─────────────────────────────────────────── -->
 
-  <!-- Modul hinzufügen -->
+  <!-- Modul hinzufügen / umbenennen -->
   <div class="modal-overlay" id="modal-add-module">
     <div class="modal">
-      <h3>Neues Modul</h3>
+      <h3 id="modal-module-title">Neues Modul</h3>
       <label>Modulname<input type="text" id="input-module-name" placeholder="z.B. Mathematik" /></label>
       <div class="modal-actions">
         <button class="btn-ghost" data-close="modal-add-module">Abbrechen</button>
@@ -104,10 +107,10 @@
     </div>
   </div>
 
-  <!-- Hausaufgabe hinzufügen -->
+  <!-- Hausaufgabe hinzufügen / bearbeiten -->
   <div class="modal-overlay" id="modal-add-hw">
     <div class="modal">
-      <h3>Hausaufgabe hinzufügen</h3>
+      <h3 id="modal-hw-title">Hausaufgabe hinzufügen</h3>
       <label>Titel<input type="text" id="hw-title" placeholder="Was ist zu tun?" /></label>
       <label>Beschreibung<textarea id="hw-desc" placeholder="Details (optional)"></textarea></label>
       <label>Fällig am<input type="date" id="hw-due" /></label>
@@ -118,10 +121,10 @@
     </div>
   </div>
 
-  <!-- Prüfung hinzufügen -->
+  <!-- Prüfung hinzufügen / bearbeiten -->
   <div class="modal-overlay" id="modal-add-exam">
     <div class="modal">
-      <h3>Prüfung hinzufügen</h3>
+      <h3 id="modal-exam-title">Prüfung hinzufügen</h3>
       <label>Thema<input type="text" id="exam-title" placeholder="z.B. Algebra" /></label>
       <label>Prüfungsdatum<input type="date" id="exam-date" /></label>
       <label>Lernziele<textarea id="exam-topics" placeholder="Was muss gelernt werden? (optional)"></textarea></label>
@@ -132,10 +135,10 @@
     </div>
   </div>
 
-  <!-- Information hinzufügen -->
+  <!-- Information hinzufügen / bearbeiten -->
   <div class="modal-overlay" id="modal-add-info">
     <div class="modal">
-      <h3>Information hinzufügen</h3>
+      <h3 id="modal-info-title">Information hinzufügen</h3>
       <label>Titel<input type="text" id="info-title" placeholder="Titel der Information" /></label>
       <label>Inhalt<textarea id="info-content" placeholder="Was soll festgehalten werden?"></textarea></label>
       <div class="modal-actions">
@@ -145,10 +148,10 @@
     </div>
   </div>
 
-  <!-- Frage stellen -->
+  <!-- Frage stellen / bearbeiten -->
   <div class="modal-overlay" id="modal-add-question">
     <div class="modal">
-      <h3>Frage stellen</h3>
+      <h3 id="modal-question-title">Frage stellen</h3>
       <label>Dein Name <span style="color:var(--danger)">*</span><input type="text" id="question-author" placeholder="Vorname Nachname" /></label>
       <label>Deine Frage <span style="color:var(--danger)">*</span><textarea id="question-text" placeholder="Was möchtest du wissen?"></textarea></label>
       <div class="modal-actions">
@@ -158,10 +161,10 @@
     </div>
   </div>
 
-  <!-- Antwort hinzufügen -->
+  <!-- Antwort hinzufügen / bearbeiten -->
   <div class="modal-overlay" id="modal-add-answer">
     <div class="modal">
-      <h3>Antwort hinzufügen</h3>
+      <h3 id="modal-answer-title">Antwort hinzufügen</h3>
       <p id="answer-question-preview" class="preview-text"></p>
       <label>Dein Name <span style="color:var(--danger)">*</span><input type="text" id="answer-author" placeholder="Vorname Nachname" /></label>
       <label>Antwort <span style="color:var(--danger)">*</span><textarea id="answer-text" placeholder="Deine Antwort..."></textarea></label>

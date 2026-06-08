@@ -78,6 +78,30 @@ public class ModuleResource {
     }
 
     /**
+     * PUT /api/modules/:moduleId
+     * Body: { name }
+     */
+    @PUT
+    @Path("/modules/{moduleId}")
+    @Transactional
+    public Response update(@PathParam("moduleId") Long moduleId, ModuleRequest req) {
+        Module m = Module.findById(moduleId);
+        if (m == null || !auth.ownsClass(m.classId)) {
+            return Response.status(404).entity(Map.of("error", "Nicht gefunden")).build();
+        }
+        if (req.name() == null || req.name().isBlank()) {
+            return Response.status(400).entity(Map.of("error", "Name darf nicht leer sein")).build();
+        }
+        m.name = req.name();
+        return Response.ok(Map.of(
+                "id",        m.id,
+                "classId",   m.classId,
+                "name",      m.name,
+                "createdAt", m.createdAt.toString()
+        )).build();
+    }
+
+    /**
      * DELETE /api/modules/:moduleId
      */
     @DELETE

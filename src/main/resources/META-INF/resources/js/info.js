@@ -2,6 +2,8 @@
    info.js – Informationen
    ============================================================ */
 
+let _editingInfoId = null;
+
 async function loadInfos() {
   const list = document.getElementById('info-list');
   list.innerHTML = '<div class="empty-card">Lädt...</div>';
@@ -19,7 +21,6 @@ function renderInfos(items) {
     list.innerHTML = '<div class="empty-card">Noch keine Informationen eingetragen.</div>';
     return;
   }
-  // API gibt created_at (snake_case) zurück
   items.sort((a, b) => (a.created_at > b.created_at ? -1 : 1));
 
   list.innerHTML = items.map(inf => `
@@ -31,6 +32,7 @@ function renderInfos(items) {
         </div>
         <div style="display:flex;gap:12px;align-items:center;flex-shrink:0">
           ${inf.content ? '<span class="card-chevron">▾</span>' : ''}
+          <button class="btn-edit" onclick="event.stopPropagation();openEditInfo(${inf.id}, \`${escapeHtml(inf.title).replace(/`/g,"'")}\`, \`${escapeHtml(inf.content || '').replace(/`/g,"'")}\`)">Bearbeiten</button>
           <button class="btn-delete" onclick="event.stopPropagation();deleteInfo(${inf.id})">Löschen</button>
         </div>
       </div>
@@ -52,11 +54,24 @@ function renderInfos(items) {
 }
 
 document.getElementById('btn-add-info').addEventListener('click', () => {
+  _editingInfoId = null;
+  document.getElementById('modal-info-title').textContent = 'Information hinzufügen';
+  document.getElementById('confirm-add-info').textContent = 'Speichern';
   document.getElementById('info-title').value   = '';
   document.getElementById('info-content').value = '';
   openModal('modal-add-info');
   setTimeout(() => document.getElementById('info-title').focus(), 100);
 });
+
+function openEditInfo(id, title, content) {
+  _editingInfoId = id;
+  document.getElementById('modal-info-title').textContent = 'Information bearbeiten';
+  document.getElementById('confirm-add-info').textContent = 'Speichern';
+  document.getElementById('info-title').value   = title;
+  document.getElementById('info-content').value = content;
+  openModal('modal-add-info');
+  setTimeout(() => document.getElementById('info-title').focus(), 100);
+}
 
 document.getElementById('confirm-add-info').addEventListener('click', async function() {
   const title   = document.getElementById('info-title').value.trim();
@@ -65,10 +80,17 @@ document.getElementById('confirm-add-info').addEventListener('click', async func
   if (this.disabled) return;
   this.disabled = true;
   try {
-    await apiFetch(`/modules/${currentModuleId}/infos`, {
-      method: 'POST',
-      body: JSON.stringify({ title, content })
-    });
+    if (_editingInfoId) {
+      await apiFetch(`/modules/${currentModuleId}/infos/${_editingInfoId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ title, content })
+      });
+    } else {
+      await apiFetch(`/modules/${currentModuleId}/infos`, {
+        method: 'POST',
+        body: JSON.stringify({ title, content })
+      });
+    }
     closeModal('modal-add-info');
     loadInfos();
   } catch (e) { alert('Fehler: ' + e.message); }

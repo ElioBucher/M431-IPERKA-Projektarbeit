@@ -630,6 +630,24 @@ body:not(.page-login) {
 }
 .btn-delete:hover { color: var(--danger); }
 
+/* Edit button on cards */
+.btn-edit {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.55);
+  font-family: inherit;
+  font-size: .85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 0;
+  letter-spacing: -.01em;
+  transition: color .14s;
+  white-space: nowrap;
+}
+.btn-edit:hover { color: var(--accent, #7c9eff); }
+.btn-edit.btn-sm, .btn-delete.btn-sm { font-size: .78rem; }
+
 /* Badges */
 .badge {
   display: inline-flex;

@@ -90,6 +90,63 @@ public class QuestionResource {
     }
 
     /**
+     * PUT /api/modules/:moduleId/questions/:id
+     * Body: { questionText, authorName? }
+     */
+    @PUT
+    @Path("/modules/{moduleId}/questions/{id}")
+    @Transactional
+    public Response updateQuestion(@PathParam("moduleId") Long moduleId, @PathParam("id") Long id, QuestionRequest req) {
+        Question q = Question.findById(id);
+        if (q == null || !q.moduleId.equals(moduleId)) {
+            return Response.status(404).entity(Map.of("error", "Nicht gefunden")).build();
+        }
+        Module m = Module.findById(q.moduleId);
+        if (m == null || !auth.ownsClass(m.classId)) {
+            return Response.status(403).entity(Map.of("error", "Kein Zugriff")).build();
+        }
+        if (req.questionText() == null || req.questionText().isBlank()) {
+            return Response.status(400).entity(Map.of("error", "Fragetext erforderlich")).build();
+        }
+        q.question   = req.questionText();
+        q.authorName = req.authorName();
+        var qm = new java.util.HashMap<String, Object>();
+        qm.put("id",           q.id);
+        qm.put("questionText", q.question);
+        qm.put("authorName",   q.authorName != null ? q.authorName : "");
+        qm.put("createdAt",    q.createdAt.toString());
+        return Response.ok(qm).build();
+    }
+
+    /**
+     * PUT /api/modules/:moduleId/answers/:id
+     * Body: { answerText, authorName? }
+     */
+    @PUT
+    @Path("/modules/{moduleId}/answers/{id}")
+    @Transactional
+    public Response updateAnswer(@PathParam("moduleId") Long moduleId, @PathParam("id") Long id, AnswerRequest req) {
+        Answer a = Answer.findById(id);
+        if (a == null) return Response.status(404).entity(Map.of("error", "Nicht gefunden")).build();
+        Question q = Question.findById(a.questionId);
+        Module m = q != null ? Module.findById(q.moduleId) : null;
+        if (m == null || !auth.ownsClass(m.classId)) {
+            return Response.status(403).entity(Map.of("error", "Kein Zugriff")).build();
+        }
+        if (req.answerText() == null || req.answerText().isBlank()) {
+            return Response.status(400).entity(Map.of("error", "Antworttext erforderlich")).build();
+        }
+        a.answer     = req.answerText();
+        a.authorName = req.authorName();
+        var am = new java.util.HashMap<String, Object>();
+        am.put("id",         a.id);
+        am.put("answerText", a.answer);
+        am.put("authorName", a.authorName != null ? a.authorName : "");
+        am.put("createdAt",  a.createdAt.toString());
+        return Response.ok(am).build();
+    }
+
+    /**
      * DELETE /api/modules/:moduleId/questions/:id
      */
     @DELETE

@@ -81,6 +81,38 @@ public class ExamResource {
     }
 
     /**
+     * PUT /api/modules/:moduleId/exams/:id
+     * Body: { topic, examDate, learningGoals? }
+     */
+    @PUT
+    @Path("/modules/{moduleId}/exams/{id}")
+    @Transactional
+    public Response update(@PathParam("moduleId") Long moduleId, @PathParam("id") Long id, ExamRequest req) {
+        Exam e = Exam.findById(id);
+        if (e == null || !e.moduleId.equals(moduleId)) {
+            return Response.status(404).entity(Map.of("error", "Nicht gefunden")).build();
+        }
+        Module m = Module.findById(e.moduleId);
+        if (m == null || !auth.ownsClass(m.classId)) {
+            return Response.status(403).entity(Map.of("error", "Kein Zugriff")).build();
+        }
+        if (req.topic() == null || req.topic().isBlank() || req.examDate() == null) {
+            return Response.status(400).entity(Map.of("error", "Thema und Datum erforderlich")).build();
+        }
+        e.title    = req.topic();
+        e.examDate = req.examDate();
+        e.topics   = req.learningGoals();
+        return Response.ok(Map.of(
+                "id",            e.id,
+                "module_id",     e.moduleId,
+                "topic",         e.title,
+                "examDate",      e.examDate,
+                "learningGoals", e.topics != null ? e.topics : "",
+                "createdAt",     e.createdAt.toString()
+        )).build();
+    }
+
+    /**
      * DELETE /api/modules/:moduleId/exams/:id
      */
     @DELETE
