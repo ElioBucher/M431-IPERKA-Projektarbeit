@@ -46,14 +46,13 @@ document.getElementById('btn-add-info').addEventListener('click', () => {
   setTimeout(() => document.getElementById('info-title').focus(), 100);
 });
 
-document.getElementById('confirm-add-info').addEventListener('click', async () => {
+document.getElementById('confirm-add-info').addEventListener('click', async function() {
   const title   = document.getElementById('info-title').value.trim();
   const content = document.getElementById('info-content').value.trim();
 
-  if (!title) {
-    alert('Bitte einen Titel angeben.');
-    return;
-  }
+  if (!title) { alert('Bitte einen Titel angeben.'); return; }
+  if (this.disabled) return;
+  this.disabled = true;
 
   try {
     await apiFetch(`/modules/${currentModuleId}/infos`, {
@@ -64,6 +63,8 @@ document.getElementById('confirm-add-info').addEventListener('click', async () =
     loadInfos();
   } catch (e) {
     alert('Fehler: ' + e.message);
+  } finally {
+    this.disabled = false;
   }
 });
 

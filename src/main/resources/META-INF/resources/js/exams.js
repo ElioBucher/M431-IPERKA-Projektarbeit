@@ -64,11 +64,13 @@ document.getElementById('btn-add-exam').addEventListener('click', () => {
   setTimeout(() => document.getElementById('exam-title').focus(), 100);
 });
 
-document.getElementById('confirm-add-exam').addEventListener('click', async () => {
+document.getElementById('confirm-add-exam').addEventListener('click', async function() {
   const topic         = document.getElementById('exam-title').value.trim();
   const examDate      = document.getElementById('exam-date').value;
   const learningGoals = document.getElementById('exam-topics').value.trim();
   if (!topic || !examDate) { alert('Bitte Thema und Prüfungsdatum angeben.'); return; }
+  if (this.disabled) return;
+  this.disabled = true;
   try {
     await apiFetch(`/modules/${currentModuleId}/exams`, {
       method: 'POST',
@@ -77,6 +79,7 @@ document.getElementById('confirm-add-exam').addEventListener('click', async () =
     closeModal('modal-add-exam');
     loadExams();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 function deleteExam(id) {

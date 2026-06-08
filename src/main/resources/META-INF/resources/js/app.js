@@ -113,9 +113,10 @@ document.getElementById('btn-add-module').addEventListener('click', () => {
   setTimeout(() => document.getElementById('input-module-name').focus(), 100);
 });
 
-document.getElementById('confirm-add-module').addEventListener('click', async () => {
+document.getElementById('confirm-add-module').addEventListener('click', async function() {
   const name = document.getElementById('input-module-name').value.trim();
-  if (!name) return;
+  if (!name || this.disabled) return;
+  this.disabled = true;
   try {
     const m = await apiFetch(`/classes/${currentClassId}/modules`, { method: 'POST', body: JSON.stringify({ name }) });
     closeModal('modal-add-module');
@@ -123,6 +124,7 @@ document.getElementById('confirm-add-module').addEventListener('click', async ()
     renderModuleList();
     selectModule(m);
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 document.getElementById('input-module-name').addEventListener('keydown', e => {
@@ -132,7 +134,9 @@ document.getElementById('input-module-name').addEventListener('keydown', e => {
 /* ── MODUL LÖSCHEN ───────────────────────────────────────── */
 document.getElementById('btn-delete-module').addEventListener('click', () => openModal('modal-confirm-delete'));
 
-document.getElementById('confirm-delete-module').addEventListener('click', async () => {
+document.getElementById('confirm-delete-module').addEventListener('click', async function() {
+  if (this.disabled) return;
+  this.disabled = true;
   try {
     await apiFetch(`/modules/${currentModuleId}`, { method: 'DELETE' });
     closeModal('modal-confirm-delete');
@@ -142,6 +146,7 @@ document.getElementById('confirm-delete-module').addEventListener('click', async
     document.getElementById('empty-state').style.display = 'flex';
     renderModuleList();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 /* ── UNIVERSAL LÖSCHEN BESTÄTIGUNG ──────────────────────── */
