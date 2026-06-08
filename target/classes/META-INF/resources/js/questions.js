@@ -76,11 +76,13 @@ document.getElementById('btn-add-question').addEventListener('click', () => {
   setTimeout(() => document.getElementById('question-author').focus(), 100);
 });
 
-document.getElementById('confirm-add-question').addEventListener('click', async () => {
+document.getElementById('confirm-add-question').addEventListener('click', async function() {
   const authorName   = document.getElementById('question-author').value.trim();
   const questionText = document.getElementById('question-text').value.trim();
   if (!authorName) { alert('Bitte deinen Namen angeben.'); return; }
   if (!questionText) { alert('Bitte eine Frage eingeben.'); return; }
+  if (this.disabled) return;
+  this.disabled = true;
   try {
     await apiFetch(`/modules/${currentModuleId}/questions`, {
       method: 'POST',
@@ -89,6 +91,7 @@ document.getElementById('confirm-add-question').addEventListener('click', async 
     closeModal('modal-add-question');
     loadQuestions();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 function openAnswerModal(questionId, questionText) {
@@ -100,11 +103,13 @@ function openAnswerModal(questionId, questionText) {
   setTimeout(() => document.getElementById('answer-author').focus(), 100);
 }
 
-document.getElementById('confirm-add-answer').addEventListener('click', async () => {
+document.getElementById('confirm-add-answer').addEventListener('click', async function() {
   const authorName = document.getElementById('answer-author').value.trim();
   const answerText = document.getElementById('answer-text').value.trim();
   if (!authorName) { alert('Bitte deinen Namen angeben.'); return; }
   if (!answerText || !answerTargetQuestionId) return;
+  if (this.disabled) return;
+  this.disabled = true;
   try {
     await apiFetch(`/modules/${currentModuleId}/questions/${answerTargetQuestionId}/answers`, {
       method: 'POST',
@@ -114,6 +119,7 @@ document.getElementById('confirm-add-answer').addEventListener('click', async ()
     answerTargetQuestionId = null;
     loadQuestions();
   } catch (e) { alert('Fehler: ' + e.message); }
+  finally { this.disabled = false; }
 });
 
 function deleteQuestion(id) {
