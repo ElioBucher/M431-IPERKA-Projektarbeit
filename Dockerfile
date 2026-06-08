@@ -4,7 +4,7 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 COPY pom.xml .
 COPY src ./src
-RUN mvn compile quarkus:build -DskipTests -B
+RUN mvn package quarkus:build -DskipTests -B
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-jammy
