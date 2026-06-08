@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(pandoc --track-changes=all \"C:\\\\Users\\\\eliob\\\\Dokumente\\\\Berufsschule\\\\2. Semester\\\\M431\\\\70-Projekt\\\\Dokumentation.docx\" -o output_doc.md)"
-    ]
-  }
-}
