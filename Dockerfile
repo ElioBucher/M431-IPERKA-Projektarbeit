@@ -2,23 +2,13 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /build
 COPY pom.xml .
-RUN mvn dependency:go-offline -q
 COPY src ./src
-RUN mvn package -DskipTests -B
+RUN mvn package -DskipTests -B -Dquarkus.package.jar.type=uber-jar
 
 # Stage 2: Runtime
-FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.20
-
-ENV LANGUAGE='en_US:en'
-
-COPY --from=build --chown=185 /build/target/quarkus-app/lib/ /deployments/lib/
-COPY --from=build --chown=185 /build/target/quarkus-app/*.jar /deployments/
-COPY --from=build --chown=185 /build/target/quarkus-app/app/ /deployments/app/
-COPY --from=build --chown=185 /build/target/quarkus-app/quarkus/ /deployments/quarkus/
-
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /deployments
+COPY --from=build /build/target/*-runner.jar /deployments/app.jar
+RUN mkdir -p /deployments/db
 EXPOSE 8080
-USER 185
-ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
-ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
-
-ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]
+ENTRYPOINT ["java", "-Dquarkus.http.host=0.0.0.0", "-Djava.util.logging.manager=org.jboss.logmanager.LogManager", "-jar", "/deployments/app.jar"]
